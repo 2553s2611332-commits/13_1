@@ -21,7 +21,7 @@ if "cart" not in st.session_state:
     st.session_state.cart = []
 
 # ---------------------------------------------------------
-# Safe CSS Injection (오류 예방 처리)
+# CSS Injection (Streamlit >= 1.40.0 호환)
 # ---------------------------------------------------------
 if st.session_state.senior_mode:
     st.markdown(
@@ -49,4 +49,13 @@ MENU_ITEMS = [
     {"id": 3, "category": "음료 (마실거리)", "name": "따뜻한 아메리카노", "price": 2000, "icon": "☕", "desc": "향이 좋고 따뜻한 커피"},
     {"id": 4, "category": "음료 (마실거리)", "name": "시원한 사이다", "price": 1800, "icon": "🥤", "desc": "톡 쏘는 청량한 톡톡 음료"},
     {"id": 5, "category": "간식 (사이드)", "name": "바삭한 감자튀김", "price": 2200, "icon": "🍟", "desc": "갓 튀겨낸 짭조름한 감자"},
-    {"id": 6, "category": "간식 (사이드)", "name": "달콤한 아이스크림", "price": 1500, "icon": "🍦", "desc": "시원하고
+    {"id": 6, "category": "간식 (사이드)", "name": "달콤한 아이스크림", "price": 1500, "icon": "🍦", "desc": "시원하고 부드러운 우유 아이스크림"}
+]
+
+# ---------------------------------------------------------
+# Header Section
+# ---------------------------------------------------------
+col_head1, col_head2 = st.columns([3, 1])
+
+with col_head1:
+    if st.session_state.senior
