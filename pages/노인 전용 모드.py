@@ -1,6 +1,17 @@
 import os
 import streamlit as st
-import google.generativeai as genai
+
+# Google SDK 호환성 예외 처리
+AI_AVAILABLE = True
+try:
+    import google.generativeai as genai
+    SDK_TYPE = "generativeai"
+except ImportError:
+    try:
+        from google import genai
+        SDK_TYPE = "genai"
+    except ImportError:
+        AI_AVAILABLE = False
 
 # ---------------------------------------------------------
 # Page Configuration
@@ -80,19 +91,17 @@ with st.sidebar:
     st.write("메뉴 선택이 어렵다면 도우미에게 물어보세요!")
     
     api_key = st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
-    
     user_q = st.text_input("질문 입력 (예: 매운 거 못 먹는데 추천해줘)")
     
     if st.button("도우미에게 물어보기 🗣️", use_container_width=True):
-        if not api_key:
+        if not AI_AVAILABLE:
+            st.error("AI 라이브러리 설치 중입니다. 잠시 후 다시 시도해주세요.")
+        elif not api_key:
             st.error("Secrets에 GEMINI_API_KEY가 설정되지 않았습니다.")
         elif not user_q.strip():
             st.warning("질문 내용을 입력해 주세요.")
         else:
             try:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-2.5-flash-lite")
-                
                 prompt_text = (
                     "당신은 어르신을 돕는 친절한 패스트푸드 점원입니다. "
                     "쉬운 한국어와 존댓말로 2문장 이내로 친절히 안내해주세요.\n"
@@ -102,9 +111,21 @@ with st.sidebar:
                 )
                 
                 with st.spinner("생각하는 중..."):
-                    res = model.generate_content(prompt_text)
+                    if SDK_TYPE == "generativeai":
+                        genai.configure(api_key=api_key)
+                        model = genai.GenerativeModel("gemini-2.5-flash-lite")
+                        res = model.generate_content(prompt_text)
+                        ans_text = res.text
+                    else:
+                        client = genai.Client(api_key=api_key)
+                        res = client.models.generate_content(
+                            model="gemini-2.5-flash-lite",
+                            contents=prompt_text
+                        )
+                        ans_text = res.text
+                        
                     st.success("도우미 답변:")
-                    st.write(res.text)
+                    st.write(ans_text)
             except Exception as e:
                 st.error(f"AI 연결 중 오류 발생: {e}")
 
