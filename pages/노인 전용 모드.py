@@ -1,22 +1,28 @@
 import os
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 
+# ---------------------------------------------------------
 # Page Configuration
+# ---------------------------------------------------------
 st.set_page_config(
     page_title="어르신 맞춤형 쉬운 키오스크",
     page_icon="🍔",
     layout="wide"
 )
 
+# ---------------------------------------------------------
 # Session State Initialization
+# ---------------------------------------------------------
 if "senior_mode" not in st.session_state:
     st.session_state.senior_mode = True
 
 if "cart" not in st.session_state:
     st.session_state.cart = []
 
+# ---------------------------------------------------------
 # CSS Injection for Senior Mode
+# ---------------------------------------------------------
 if st.session_state.senior_mode:
     st.markdown(
         """
@@ -34,7 +40,9 @@ if st.session_state.senior_mode:
         unsafe_allow_html=True
     )
 
+# ---------------------------------------------------------
 # Menu Data
+# ---------------------------------------------------------
 MENU_ITEMS = [
     {"id": 1, "category": "버거 (식사)", "name": "불고기버거", "price": 4500, "icon": "🍔", "desc": "달콤하고 부드러운 불고기 소스 버거"},
     {"id": 2, "category": "버거 (식사)", "name": "새우버거", "price": 5000, "icon": "🥪", "desc": "고소한 새우 살이 씹히는 버거"},
@@ -44,7 +52,9 @@ MENU_ITEMS = [
     {"id": 6, "category": "간식 (사이드)", "name": "달콤한 아이스크림", "price": 1500, "icon": "🍦", "desc": "시원하고 부드러운 우유 아이스크림"}
 ]
 
+# ---------------------------------------------------------
 # Header Section
+# ---------------------------------------------------------
 col_head1, col_head2 = st.columns([3, 1])
 
 with col_head1:
@@ -62,7 +72,9 @@ with col_head2:
 
 st.divider()
 
+# ---------------------------------------------------------
 # Sidebar: AI Assistant (gemini-2.5-flash-lite)
+# ---------------------------------------------------------
 with st.sidebar:
     st.header("🤖 AI 키오스크 도우미")
     st.write("메뉴 선택이 어렵다면 도우미에게 물어보세요!")
@@ -78,7 +90,9 @@ with st.sidebar:
             st.warning("질문 내용을 입력해 주세요.")
         else:
             try:
-                client = genai.Client(api_key=api_key)
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel("gemini-2.5-flash-lite")
+                
                 prompt_text = (
                     "당신은 어르신을 돕는 친절한 패스트푸드 점원입니다. "
                     "쉬운 한국어와 존댓말로 2문장 이내로 친절히 안내해주세요.\n"
@@ -88,16 +102,15 @@ with st.sidebar:
                 )
                 
                 with st.spinner("생각하는 중..."):
-                    res = client.models.generate_content(
-                        model="gemini-2.5-flash-lite",
-                        contents=prompt_text
-                    )
+                    res = model.generate_content(prompt_text)
                     st.success("도우미 답변:")
                     st.write(res.text)
             except Exception as e:
                 st.error(f"AI 연결 중 오류 발생: {e}")
 
+# ---------------------------------------------------------
 # Main Ordering Interface
+# ---------------------------------------------------------
 left_col, right_col = st.columns([2, 1])
 
 with left_col:
